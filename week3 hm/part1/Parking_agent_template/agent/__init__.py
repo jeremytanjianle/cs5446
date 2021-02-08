@@ -237,21 +237,24 @@ class GeneratePDDL_Stationary :
         # add UP_NEXT logic
         def valid_up_cell(grid_cell):
             _, x, y = grid_cell.split('pt')
-            return f"pt{int(x)-1%self.width}pt{max(int(y)-1, 0)}"
+            new_x = int(x)-1 if int(x)-1 >= 0 else int(x)-1 + self.width
+            return f"pt{new_x}pt{max(int(y)-1, 0)}"
         for grid_cell in self.grid_cell_list:
             init_string += f"(up_next {grid_cell} {valid_up_cell(grid_cell)}) "
 
         # add DOWN_NEXT logic
         def valid_down_cell(grid_cell):
             _, x, y = grid_cell.split('pt')
-            return f"pt{int(x)-1%self.width}pt{min(int(y)+1, self.num_lanes)}"
+            new_x = int(x)-1 if int(x)-1 >= 0 else int(x)-1 + self.width
+            return f"pt{new_x}pt{min(int(y)+1, self.num_lanes)}"
         for grid_cell in self.grid_cell_list:
             init_string += f"(down_next {grid_cell} {valid_down_cell(grid_cell)}) "
 
         # add DOWN_NEXT logic
         def valid_forward_cell(grid_cell):
             _, x, y = grid_cell.split('pt')
-            return f"pt{int(x)-1%self.width}pt{y}"
+            new_x = int(x)-1 if int(x)-1 >= 0 else int(x)-1 + self.width
+            return f"pt{new_x}pt{y}"
         for grid_cell in self.grid_cell_list:
             init_string += f"(forward_next {grid_cell} {valid_forward_cell(grid_cell)}) "
 
