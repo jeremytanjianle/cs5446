@@ -1,4 +1,4 @@
-SUBMISSION = False #Set this to true for submission. Set it to False if testing on your machine.
+SUBMISSION = True #Set this to true for submission. Set it to False if testing on your machine.
 
 import gym
 import gym_grid_driving
@@ -23,7 +23,7 @@ PDDL_FILE_ABSOLUTE_PATH = ""
 
 ## Sample test cases for Crossing Task
 test_config = [{'lanes' : [LaneSpec(6, [-2, -2])] *2 + [LaneSpec(6, [-5, -5])] *2 +
-                          [LaneSpec(5, [-4, -4])] *2 + [LaneSpec(5, [-2, -2])] *1, 'width' :30, 'seed' : 101}]
+                          [LaneSpec(5, [-4, -4])] *2 + [LaneSpec(5, [-2, -2])] *1, 'width' :30, 'seed' : 102}]
 
 
 test_case_number = 0 # Change the index for a different test case
@@ -32,7 +32,7 @@ WIDTH = test_config[test_case_number]['width']
 RANDOM_SEED = test_config[test_case_number]['seed']
 
 # option to change agent speed
-AGENT_SPEED_RANGE = (-3,-1)
+AGENT_SPEED_RANGE = (-6,-1)
 
 class GeneratePDDL_Stationary :
     '''
@@ -52,7 +52,7 @@ class GeneratePDDL_Stationary :
         self.problem_string = ""
         self.object_strings = self.addHeader("objects")
 
-        self.max_time = 30 # setting third dimension of time
+        self.max_time = 500 # setting third dimension of time
         self.agent_speed_range = AGENT_SPEED_RANGE
 
 
@@ -255,9 +255,12 @@ class GeneratePDDL_Stationary :
         def valid_up_cell(grid_cell, distance=1):
             _, x, y, t = grid_cell.split('pt')
             new_x = int(x)-distance if int(x)-distance >= 0 else int(x)-distance + self.width
+            # new_x = int(x)-distance if int(x)-distance >= 0 else 0 
             return f"pt{new_x}pt{max(int(y)-1, 0)}pt{int(t)+1}"
         for grid_cell in self.grid_cell_list:
-            init_string += f"(up_next {grid_cell} {valid_up_cell(grid_cell, distance=1)}) "
+            old_x = int(grid_cell.split('pt')[1])
+            if old_x>0:
+                init_string += f"(up_next {grid_cell} {valid_up_cell(grid_cell, distance=1)}) "
             # for dist in range(-1*self.agent_speed_range[0], -1*self.agent_speed_range[1]+1):
             #     # if self.agent_speed_range = (-1,-3), valid distance be 1,2,3 
             #     init_string += f"(up_next {grid_cell} {valid_up_cell(grid_cell, distance=dist)}) "
@@ -266,20 +269,26 @@ class GeneratePDDL_Stationary :
         def valid_down_cell(grid_cell, distance=1):
             _, x, y, t = grid_cell.split('pt')
             new_x = int(x)-distance if int(x)-distance >= 0 else int(x)-distance + self.width
+            # new_x = int(x)-distance if int(x)-distance >= 0 else 0 
             return f"pt{new_x}pt{min(int(y)+1, self.num_lanes)}pt{int(t)+1}"
         for grid_cell in self.grid_cell_list:
-            init_string += f"(down_next {grid_cell} {valid_down_cell(grid_cell, distance=1)}) "
+            old_x = int(grid_cell.split('pt')[1])
+            if old_x>0:
+                init_string += f"(down_next {grid_cell} {valid_down_cell(grid_cell, distance=1)}) "
             # for dist in range(-1*self.agent_speed_range[0], -1*self.agent_speed_range[1]+1):
             #     init_string += f"(down_next {grid_cell} {valid_down_cell(grid_cell, distance=dist)}) "
 
         # add FORWARD_NEXT logic
         def valid_forward_cell(grid_cell, distance=1):
             _, x, y, t = grid_cell.split('pt')
-            new_x = int(x)-distance if int(x)-distance >= 0 else int(x)-distance + self.width
+            # new_x = int(x)-distance if int(x)-distance >= 0 else int(x)-distance + self.width
+            new_x = int(x)-distance if int(x)-distance >= 0 else 0 
             return f"pt{new_x}pt{y}pt{int(t)+1}"
         for grid_cell in self.grid_cell_list:
+            old_x = int(grid_cell.split('pt')[1])
             for dist in range(-1*self.agent_speed_range[1], -1*self.agent_speed_range[0]+1):
-                init_string += f"(forward_next_{dist} {grid_cell} {valid_forward_cell(grid_cell, distance=dist)}) "
+                if old_x-dist>0:
+                    init_string += f"(forward_next_{dist} {grid_cell} {valid_forward_cell(grid_cell, distance=dist)}) "
 
         return init_string
 
